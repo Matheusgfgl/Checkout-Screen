@@ -9,12 +9,38 @@
 </template>
 
 <style lang="scss">
+  /**
+   *
+   * Normalize from Tailwind
+   * https://unpkg.com/tailwindcss@1.1.4/dist/base.css
+   *
+   */
+  @import "@/assets/sass/base/_normalize.scss";
+
+
+  /**
+   *
+   * Base
+   *
+   */
+  @import "@/assets/sass/base/_container.scss";
+  @import "@/assets/sass/base/_fonts.scss";
+
+  /**
+   *
+   * Project
+   *
+   */
+  @import "@/assets/sass/project/_buttons.scss";
+  @import "@/assets/sass/project/_form.scss";
+
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: $font-sans;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: $gray-500;
 }
 
 #nav {
@@ -22,10 +48,10 @@
 
   a {
     font-weight: bold;
-    color: #2c3e50;
+    color: $gray-500;
 
     &.router-link-exact-active {
-      color: #42b983;
+    color: $green-500;
     }
   }
 }
