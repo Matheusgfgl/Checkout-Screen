@@ -140,8 +140,9 @@ O projeto vem configurado com um padrão de utilização de SVGs próximo ao que
  1. Criar um arquivo `.vue` dentro do diretório de SVGs com o conteúdo do SVG, removendo a tag `<svg>`, deixando apenas o conteúdo. Exemplo com a logo do Vue.js:
  
 Arquivo SVG original:
- ```
- <?xml version="1.0" encoding="UTF-8"?>
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
 <svg version="1.1" viewBox="0 0 261.76 226.69"
 	xmlns="http://www.w3.org/2000/svg">
 	<g transform="matrix(1.3333 0 0 -1.3333 -76.311 313.34)">
@@ -166,6 +167,7 @@ Depois de remover a tag **svg** e **xml**:
 	</g>
 </g>
 ```
+
 Arquivo final **Logo.vue** que vai ficar dentro do diretório de SVGs:
 ```
 <template>
