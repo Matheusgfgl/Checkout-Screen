@@ -14,7 +14,10 @@ O projeto já possuí algumas definições próprias de style, incluindo arquivo
 
  1. Clonar repositório alterando o `NOME_PROJETO` para o nome do projeto
 	 - `git clone git@bitbucket.org:primelantecnologia/frontend-base-vue.git NOME_PROJETO`
- 2. Altear `name` no `package.json`
+ 2. Alterar `name` no `package.json`
+ 3. Alterar a origin do git para o repositório do novo projeto
+	 - `git remote remove origin`
+	 - `git remote add origin {NOVO_REPOSITORIO}`
 
 ## Configurações & Explicações
 
