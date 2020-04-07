@@ -18,6 +18,9 @@ O projeto já possuí algumas definições próprias de style, incluindo arquivo
  3. Alterar a origin do git para o repositório do novo projeto
 	 - `git remote remove origin`
 	 - `git remote add origin {NOVO_REPOSITORIO}`
+ 3. Configurar variáveis de build no arquivo `publish.sh`
+	 - `projectName=NOME_PROJETO`: Alterar `NOME_PROJETO` para o nome do projeto, sem espaços e de preferência o mesmo nome do repositório
+	 - `ecrUri=ECR_URI`: Alterar `ECR_URI` para a URI do repository na AWS ECR. Caso não tenha acesso é necessário solicitar pra alguém que possua.
 
 ## Configurações & Explicações
 
@@ -216,30 +219,38 @@ components: {
 />
 ```
 
-## Executando o projeto
+## Executando e Build
 Para executar o projeto é recomendado a utilização do Vue UI, através do comando `vue ui`.
 
 Para utilizar direto do terminal:
 
-#### Project setup
+#### Build da imagem
+Para fazer a build da imagem que será utilizada pelo docker **é necessário que as credenciais da aws estejam configuradas na máquina**, caso não estejam será necessário entrar em contato com a infra para obter as credenciais e instruções de como configurar.
+
+
+##### Ambiente de build
+A build pode ser para **Produção** ou **Homologação/Staging**.
+Caso tenha variáveis de ambiente diferentes para cada um dos ambientes basta utilizar os arquivos `.env.production` ou `.env.staging`.
+
+No momento da build é necessário especificar qual o ambiente, podendo ser `production` ou `staging`. Isso irá implicar em:
+
+1. Para o ambiente `production` a imagem terá a *TAG* com a versão da release criada:
+	- Ex. `production`: `XXXXXXX.dkr.ecr.us-east-1.amazonaws.com/XXXXXXX:v0.1.2` 
+2. Para o `staging` a *TAG* **sempre** será `:staging`:
+	- Ex. `staging`: `XXXXXXX.dkr.ecr.us-east-1.amazonaws.com/XXXXXXX:staging`
+ 
+
+##### Comando de build
+No **root** do projeto executar o seguinte comando no terminal, substituindo os valores `ENVIRONMENT` pelo ambiente da build.
+
+Caso tenha criado um perfil para as suas credenciais da AWS utilizar o `AWS_PROFILE` para informar o nome. Caso não tenha criado perfil para as credenciais da AWS basta não informar o `AWS_PROFILE`.
+
 ```
-yarn install
+$ sh publish.sh [ENVIRONMENT] [AWS_PROFILE]
 ```
 
-##### Compiles and hot-reloads for development
-```
-yarn serve
-```
+Após a execução irá aparecer no terminal a URI final da image, que deverá ser utilizada, será parecido com a seguinte:
 
-##### Compiles and minifies for production
 ```
-yarn build
+The image URL is: XXXXX.dkr.ecr.us-east-1.amazonaws.com/XXXXX:ENVIRONMENT
 ```
-  
-##### Lints and fixes files
-```
-yarn lint
-```
-
-##### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
