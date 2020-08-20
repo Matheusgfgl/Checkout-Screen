@@ -1,0 +1,48 @@
+name: Docker Build & ECR Upload 
+
+on:
+  push:
+    branches:
+      - develop
+  release:
+    types: [published]
+
+jobs:
+  build-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configuring AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Login on Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    
+    - name: Getting the ECR repository info
+      run: |
+        echo ::set-env name=ECR_REGISTRY::${{ steps.login-ecr.outputs.registry }}
+        echo ::set-env name=ECR_REPOSITORY::${{ github.event.repository.name }}
+
+    - name: New release - Getting tag
+      if: github.event_name == 'release'
+      run: echo ::set-env name=IMAGE_TAG::${GITHUB_REF#refs/*/}
+
+    - name: New staging - Getting tag
+      if: github.event_name == 'push'
+      run: echo ::set-env name=IMAGE_TAG::staging
+      
+    - name: Build, and push image to Amazon ECR
+      run: |
+        docker build -f docker/Dockerfile -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+        docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+    - name: Logout of Amazon ECR
+      if: always()
+      run: docker logout ${{ steps.login-ecr.outputs.registry }}

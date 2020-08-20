@@ -17,7 +17,6 @@
    */
   @import "@/assets/sass/base/_normalize.scss";
 
-
   /**
    *
    * Base
@@ -33,7 +32,6 @@
    */
   @import "@/assets/sass/project/_buttons.scss";
   @import "@/assets/sass/project/_form.scss";
-
 
 #app {
   font-family: $font-sans;

@@ -6,6 +6,9 @@ import store from './store';
 
 Vue.config.productionTip = false;
 
+// Global SVG Component
+Vue.component('SvgElement', () => import('@/components/base/svg/SvgElement.vue'));
+
 new Vue({
   router,
   store,

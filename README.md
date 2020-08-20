@@ -12,15 +12,9 @@ O projeto já possuí algumas definições próprias de style, incluindo arquivo
 
 ## Passos iniciais
 
- 1. Clonar repositório alterando o `NOME_PROJETO` para o nome do projeto
-	 - `git clone git@bitbucket.org:primelantecnologia/frontend-base-vue.git NOME_PROJETO`
+ 1. Criar um novo projeto com base nesse template
+	 - Clicar no botão "Use this template"
  2. Alterar `name` no `package.json`
- 3. Alterar a origin do git para o repositório do novo projeto
-	 - `git remote remove origin`
-	 - `git remote add origin {NOVO_REPOSITORIO}`
- 3. Configurar variáveis de build no arquivo `publish.sh`
-	 - `projectName=NOME_PROJETO`: Alterar `NOME_PROJETO` para o nome do projeto, sem espaços e de preferência o mesmo nome do repositório
-	 - `ecrUri=ECR_URI`: Alterar `ECR_URI` para a URI do repository na AWS ECR. Caso não tenha acesso é necessário solicitar pra alguém que possua.
 
 ## Configurações & Explicações
 
@@ -138,12 +132,12 @@ Configurar também o pesos das fontes importadas nas linhas correspondentes.
 ```
 
 ### SVGs
-Arquivo: `/src/components/base/svg/SVG.vue`
+Arquivo: `/src/components/base/svg/SvgElement.vue`
 Diretório para SVGs: `/src/components/base/svg/elements/`
 
 O projeto vem configurado com um padrão de utilização de SVGs próximo ao que a documentação oficial recomenda. A logo do Vue.js que está no components `Home.vue` está dentro desse padrão. Abaixo tem detalhado como adicionar a mesma logo ao projeto:
 
- 1. Criar um arquivo `.vue` dentro do diretório de SVGs com o conteúdo do SVG, removendo a tag `<svg>`, deixando apenas o conteúdo. Exemplo com a logo do Vue.js:
+ 1. Criar um arquivo `.vue` dentro do diretório de SVGs com o conteúdo do SVG, removendo a tag `<svg>`, deixando apenas o conteúdo. Utilize o [SVGOMG](https://github.com/UpperSoft/upmarket-web/tree/develop/components/svg) para "limpar" o arquivo. Exemplo com a logo do Vue.js:
  
 Arquivo SVG original:
 
@@ -174,7 +168,7 @@ Depois de remover a tag **svg** e **xml**:
 </g>
 ```
 
-Arquivo final **Logo.vue** que vai ficar dentro do diretório de SVGs:
+Arquivo final **LogoVue.vue** que vai ficar dentro do diretório de SVGs:
 ```
 <template>
 	<g  transform="matrix(1.3333 0 0 -1.3333 -76.311 313.34)">
@@ -189,31 +183,22 @@ Arquivo final **Logo.vue** que vai ficar dentro do diretório de SVGs:
 </template>
 ```
 
- 2. Fazer o import do novo svg (Logo.vue) no arquivo base de SVG `SVG.vue`: `import  LogoVue  from  '@/components/base/svg/elements/Logo.vue';`
+ 2. Fazer o import do novo svg (LogoVue.vue) no arquivo base de SVG `SVG.vue`: `const LogoVue = () => import('@/components/base/svg/elements/LogoVue.vue');`
  3. Adicionar o LogoVue nos components: `components: { LogoVue, },`
- 4. Colocar no switch de ícones na `computed` `SVGElement` o nome que vai ser usado para acessar esse SVG e qual elemento esse nome corresponde:
+ 4. Colocar no switch de informações default do svg na `computed` `iconData`as informações default (largura, altura, viewbox)::
 ```
-case  'logo': // Quando for passado 'logo' como parâmetro será carregado o SVG definido no data abaixo 
-	data = 'LogoVue'; // Component importado no passo 2 e adicionado no passo 3
-	break;
+case 'LogoVue':
+	return this.defaultData('261.76', '226.69', '0 0 261.76 226.69');
 ```
- 5. Para utilizar o SVG basta fazer o import do SVG.vue no component, uma única vez independente da quantidade de SVGs do component, e depois colocar o component no template passando os parâmetros:
+ 5. Para utilizar o SVG basta colocar a tag do component `<SvgElement>` com a prop icon igual ao nome utilizado no import do passo 2. Caso queira customizar as definições do SVG, alterando o default definido no passo 4, é só passar as props::
 
 ```
-// Import JS
-import  icon  from  '@/components/base/svg/SVG.vue';
-
-// Load do Components
-components: {
-	icon,
-},
-
 // Utilização no <template>
-<icon
+<SvgElement
 	icon="logo" // Nome do SVG definido no switch do passo 4 [Obrigatório]
-	name="Vue.js" // Nome utilizado como title para svg [Obrigatório]
-	width="261.76" // Largura em número px [Obrigatório]
-	height="226.69" // Altura em número px [Obrigatório]
+	name="Vue.js" // Nome utilizado como title para svg [Opcional]
+	width="261.76" // Largura em número px [Opcional]
+	height="226.69" // Altura em número px [Opcional]
 	color="#000000" // Cor em Hex e depende do SVG ser compatível [Opcional]
 	viewBox="0 0 261.76 226.69" // ViewBox [Opcional]
 />
@@ -221,36 +206,3 @@ components: {
 
 ## Executando e Build
 Para executar o projeto é recomendado a utilização do Vue UI, através do comando `vue ui`.
-
-Para utilizar direto do terminal:
-
-#### Build da imagem
-Para fazer a build da imagem que será utilizada pelo docker **é necessário que as credenciais da aws estejam configuradas na máquina**, caso não estejam será necessário entrar em contato com a infra para obter as credenciais e instruções de como configurar.
-
-
-##### Ambiente de build
-A build pode ser para **Produção** ou **Homologação/Staging**.
-Caso tenha variáveis de ambiente diferentes para cada um dos ambientes basta utilizar os arquivos `.env.production` ou `.env.staging`.
-
-No momento da build é necessário especificar qual o ambiente, podendo ser `production` ou `staging`. Isso irá implicar em:
-
-1. Para o ambiente `production` a imagem terá a *TAG* com a versão da release criada:
-	- Ex. `production`: `XXXXXXX.dkr.ecr.us-east-1.amazonaws.com/XXXXXXX:v0.1.2` 
-2. Para o `staging` a *TAG* **sempre** será `:staging`:
-	- Ex. `staging`: `XXXXXXX.dkr.ecr.us-east-1.amazonaws.com/XXXXXXX:staging`
- 
-
-##### Comando de build
-No **root** do projeto executar o seguinte comando no terminal, substituindo os valores `ENVIRONMENT` pelo ambiente da build.
-
-Caso tenha criado um perfil para as suas credenciais da AWS utilizar o `AWS_PROFILE` para informar o nome. Caso não tenha criado perfil para as credenciais da AWS basta não informar o `AWS_PROFILE`.
-
-```
-$ sh publish.sh [ENVIRONMENT] [AWS_PROFILE]
-```
-
-Após a execução irá aparecer no terminal a URI final da image, que deverá ser utilizada, será parecido com a seguinte:
-
-```
-The image URL is: XXXXX.dkr.ecr.us-east-1.amazonaws.com/XXXXX:ENVIRONMENT
-```
