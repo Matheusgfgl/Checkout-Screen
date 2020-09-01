@@ -204,5 +204,77 @@ case 'LogoVue':
 />
 ```
 
-## Executando e Build
-Para executar o projeto é recomendado a utilização do Vue UI, através do comando `vue ui`.
+## Padrões do GIT
+O projeto conta com um grupo de actions do GitHub. Por meio das actions acontece o processo de builds, releases e sincronizações entre branches.
+
+#### Branches
+
+##### Branches básicas
+Obrigatoriamente o projeto deve possuir as branches `master` e `develop`.
+
+##### Feature
+Para cada nova funcionalidade deve ser criada uma branch a partir da `develop` com o padrão de nome `feature/*`.
+Nessa branch todo o processo de desenvolvimento da funcionalidade deve ser executado. Você pode agrupar a branch por entrega, funcionalidade ou outro formato que achar melhor, mas a recomendação é sempre agrupar na branch tudo o que é necessário para a funcionalidade.
+
+##### Bugfix
+Para a resolução de um bug que não é urgente, e que não precisa ir imediatamente para produção, deve ser criada um bugfix a partir da `develop` com o padrão de nome `bugfix/*`.
+
+##### Hotfix
+Caso exista a necessidade de um Hotfix, deve ser criada uma branch a partir da `master` com o padrão de nome `hotfix/*`.
+
+
+#### Commit
+Adotamos o padrão de commit com o número da tarefa do ClubHouse.
+Ex: `git commit -m '[ch1234] criação da tela de login'`
+
+#### Ambiente de Desenvolvimento
+Para executar o projeto é recomendado a utilização do Vue UI, através do comando `vue ui` no terminal.
+
+#### Ambiente de Homologação
+Como o projeto conta com as funcionalidades do GitHub Actions, o processo de build do ambiente de homologação ocorre de algumas maneiras. Em ambas, será gerado uma URI da Amazon ECR, essa URI deverá ser inserida no respectivo service do Rancher.
+
+A criação da imagem de homologação pode ocorrer:
+
+##### Via pull Request
+Ao criar qualquer `Pull Request` com o label `#gerar-build` para a branch `develop`.
+
+No momento em que a `Pull Request` receber o label será iniciado o processo de build e push da imagem. Você deverá aguardar o fim do processo, e um comentário irá aparecer na PR com o URI da imagem que deverá ser utilizada no Rancher.
+
+Essa URI terá a tag `:pr-XX`, e irá representar tudo o que tem até o momento nessa `Pull Request`.
+
+Caso você atualize algum arquivo e faça push para a branch, uma nova imagem será criada automáticamente, com a mesma tag, e você precisa fazer o upgrade no Rancher.
+
+##### Push/Merge na Develop
+Todo push, ou merge, na `develop` irá iniciar o processo de build de uma imagem com a tag `:staging`.
+
+A cada atualização é necessário fazer o upgrade no Rancher.
+
+##### Manualmente
+Caso você tenha a necessidade de gerar uma build em uma branch específica você poderá iniciar o processo de forma manual.
+
+Acesse a aba de `Actions` do repositório, clique em `Staging Docker Build & ECR Upload` no menu lateral, clique em `Run Workflow`, selecione a branch que você deseja executar a build, e por fim clique no botão verde `Run Workflow`. Aguarde o final do processo.
+
+Ao fim do processo a nova imagem terá a tag `:staging` e irá conter todas as alterações que estão branch especificada.
+
+#### Ambiente de Produção
+Existem duas formas de iniciar uma build de produção:
+
+- `Pull Request` da `develop` para a `master`: deverá conter os labels `#novo-release` e do tipo de versão (`#patch`, `#minor`, `#major`). A criação dessa PR geralmente ocorre de forma automática.
+- `Pull Request` de um `hotfix` para a `master`.
+
+Para a disponibilização da nova versão será necessário que o código passe por um review, e que seja feita a atualização da imagem no Rancher ao final do processo. 
+
+##### Feature/Bugfix
+Para a disponibilização de funcionalidades em produção adotamos o padrão de Pull Request. Com isso, após a finalização de cada feature, ou de um bugfix, que deverá ir para produção na próxima versão, você precisa apenas fazer o merge na `develop`.
+
+No momento que o primeiro merge na `develop` for finalizado uma `Pull Request` de nova release será criada para a master. Essa `Pull Request` vai conter todos os novos commits da develop, então é importar que **só seja feito o merge na develop das funcionalidades prontas para uma próxima versão**. Nessa `Pull Request`, criada automaticamente, você deverá editar a descrição informando o que foi alterado, e comunicar a pessoa responsável pelo code review, para que seja feita a aprovação e a criação do novo release de produção.
+
+Ao final do processo será feito um comentário, automático, na PR com a URI da imagem.
+
+
+##### Hotfix
+Para a disponibilização de um hotfix em produção você deverá criar uma `Pull Request` da branch `hotfix/*` para a `master`, especificando as alterações.
+
+Após a aprovação da `Pull Request` o código irá para a `master` e uma nova `Pull Request` da `master` para a `develop` será criada, com a finalidade de atualizar a `develop` com as correções feitas.
+
+Ao final do processo será feito um comentário, automático, na PR com a URI da imagem.
