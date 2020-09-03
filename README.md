@@ -244,17 +244,14 @@ Essa URI terá a tag `:pr-XX`, e irá representar tudo o que tem até o momento 
 
 Caso você atualize algum arquivo e faça push para a branch, uma nova imagem será criada automáticamente, com a mesma tag, e você precisa fazer o upgrade no Rancher.
 
-##### Push/Merge na Develop
-Todo push, ou merge, na `develop` irá iniciar o processo de build de uma imagem com a tag `:staging`.
-
-A cada atualização é necessário fazer o upgrade no Rancher.
-
 ##### Manualmente
 Caso você tenha a necessidade de gerar uma build em uma branch específica você poderá iniciar o processo de forma manual.
 
 Acesse a aba de `Actions` do repositório, clique em `Staging Docker Build & ECR Upload` no menu lateral, clique em `Run Workflow`, selecione a branch que você deseja executar a build, e por fim clique no botão verde `Run Workflow`. Aguarde o final do processo.
 
 Ao fim do processo a nova imagem terá a tag `:staging` e irá conter todas as alterações que estão branch especificada.
+
+A cada atualização é necessário fazer o upgrade no Rancher.
 
 #### Ambiente de Produção
 Existem duas formas de iniciar uma build de produção:
