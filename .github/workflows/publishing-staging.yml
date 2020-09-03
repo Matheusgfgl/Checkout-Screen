@@ -1,8 +1,6 @@
 name: Staging Docker Build & ECR Upload
 
 on:
-  push:
-    branches: [develop]
   pull_request:
     types: [opened, reopened, synchronize, labeled]
     branches-ignore: [master]
@@ -11,7 +9,7 @@ on:
 jobs:
   build-upload:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, '#gerar-build'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, '#gerar-build'))
     outputs:
       RELEASE_NUMBER: ${{ env.RELEASE_NUMBER }}
     steps:
