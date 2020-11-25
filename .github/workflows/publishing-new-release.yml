@@ -17,13 +17,13 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Getting the PR label to know the next version
-        run: if [ ${{ contains(github.event.pull_request.labels.*.name, '#major') }} = true ]; then type='major'; elif [ ${{ contains(github.event.pull_request.labels.*.name, '#minor') }} = true ]; then type='minor'; else type='patch'; fi; echo ::set-env name=NEXT_VERSION_LABEL::v_$type
+        run: if [ ${{ contains(github.event.pull_request.labels.*.name, '#major') }} = true ]; then type='major'; elif [ ${{ contains(github.event.pull_request.labels.*.name, '#minor') }} = true ]; then type='minor'; else type='patch'; fi; echo NEXT_VERSION_LABEL=v_$type >> $GITHUB_ENV
 
       - name: Has previous versions?
-        run: if [ `git rev-list --tags --max-count=1` ]; then has=true; else has=false; fi; echo ::set-env name=HAS_PREVIOUS_RELEASE::$has
+        run: if [ `git rev-list --tags --max-count=1` ]; then has=true; else has=false; fi; echo HAS_PREVIOUS_RELEASE=$has >> $GITHUB_ENV
 
       - name: Getting the actual version
-        run: if [ ${{ env.HAS_PREVIOUS_RELEASE }} = true ]; then version=`git describe --tags \`git rev-list --tags --max-count=1\``; else version=v0.0.0; fi; echo ::set-env name=ACTUAL_VERSION::$version;
+        run: if [ ${{ env.HAS_PREVIOUS_RELEASE }} = true ]; then version=`git describe --tags \`git rev-list --tags --max-count=1\``; else version=v0.0.0; fi; echo ACTUAL_VERSION=$version >> $GITHUB_ENV;
 
       - name: Getting the next version possibilities
         id: semvers
@@ -32,7 +32,7 @@ jobs:
           version: ${{ env.ACTUAL_VERSION }}
 
       - name: Getting the new version based on PR label
-        run: echo ::set-env name=RELEASE_NUMBER::${{ steps.semvers.outputs[env.NEXT_VERSION_LABEL] }}
+        run: echo RELEASE_NUMBER=${{ steps.semvers.outputs[env.NEXT_VERSION_LABEL] }} >> $GITHUB_ENV
 
       - name: Creating the new release
         id: create_release
@@ -67,10 +67,10 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: New release TAG
-      run: if [ ${{ github.event_name }} = 'release' ]; then tag=${{ github.ref }}; else tag=${{ needs.new-release.outputs.RELEASE_NUMBER }}; fi; echo ::set-env name=IMAGE_TAG::$tag
+      run: if [ ${{ github.event_name }} = 'release' ]; then tag=${{ github.ref }}; else tag=${{ needs.new-release.outputs.RELEASE_NUMBER }}; fi; echo IMAGE_TAG=$tag >> $GITHUB_ENV
 
     - name: Getting the complete ECR URI
-      run: echo ::set-env name=ECR_URI::${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ env.IMAGE_TAG }}
+      run: echo ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ env.IMAGE_TAG }} >> $GITHUB_ENV
 
     - name: Build, and push image to Amazon ECR
       run: |
