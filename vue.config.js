@@ -1,17 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
-// Webpack
-const webpack = require('webpack');
-
-// Purge CSS
-const PurgecssPlugin = require('purgecss-webpack-plugin');
-const glob = require('glob-all');
-const path = require('path');
-
-// Git Version
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
-
-const gitRevisionPlugin = new GitRevisionPlugin();
-
 module.exports = {
   // pwa: {
   //   themeColor: '#000000',
@@ -35,20 +21,7 @@ module.exports = {
   // },
   configureWebpack: {
     plugins: [
-      new PurgecssPlugin({
-        paths: glob.sync([
-          path.join(__dirname, './src/App.vue'),
-          path.join(__dirname, './src/components/**/*.vue'),
-          path.join(__dirname, './src/views/**/*.vue'),
-        ]),
-        whitelistPatternsChildren: [
-          //
-        ],
-      }),
-      GitRevisionPlugin,
-      new webpack.DefinePlugin({
-        APP_VERSION: JSON.stringify(gitRevisionPlugin.version()),
-      }),
+      //
     ],
     optimization: {
       splitChunks: {
@@ -61,7 +34,7 @@ module.exports = {
   css: {
     loaderOptions: {
       scss: {
-        prependData: `@import "@/assets/sass/base/_colors.scss";
+        additionalData: `@import "@/assets/sass/base/_colors.scss";
         @import "@/assets/sass/base/_variables.scss";
         @import "@/assets/sass/base/_breakpoints.scss";
         `,

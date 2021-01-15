@@ -1,0 +1,70 @@
+name: Staging version
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag'
+        required: true
+        default: 'staging'
+  pull_request:
+    types: [synchronize, labeled]
+    branches-ignore: [master]
+
+jobs:
+  build-upload:
+    name: Build and upload do ECR
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && ((github.event.action == 'labeled' && github.event.label.name == '#gerar-build') || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, '#gerar-build'))))
+    runs-on: ubuntu-18.04
+    outputs:
+      img_uri: "${{ github.event.repository.name }}:${{ env.TAG }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configuring AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login on ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Define the tag
+        run: if [ ${{ github.event_name }} = 'pull_request' ]; then tag=pr-${{ github.event.number }}; else tag=${{ github.event.inputs.tag }}; fi; echo "TAG=$tag" >> $GITHUB_ENV
+
+      - name: Getting the ECR URI
+        run: echo "ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ env.TAG }}" >> $GITHUB_ENV
+
+      - name: Build, and push image to ECR
+        run: |
+          docker build --build-arg ENVIRONMENT_BUILD=staging --build-arg RELEASE_V=${{ env.TAG }} -f docker/Dockerfile -t ${{ env.ECR_URI }} .
+          docker push ${{ env.ECR_URI }}
+
+      - name: Logout of Amazon
+        if: always()
+        run: docker logout ${{ steps.login-ecr.outputs.registry }}
+
+  create-comment:
+    name: Create comment in Pull Request
+    if: github.event_name == 'pull_request' && github.event.action == 'labeled'
+    needs: [build-upload]
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Commeting in PR
+        uses: actions/github-script@v3
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.number }},
+              body: "**Imagem criada com sucesso:** /${{ needs.build-upload.outputs.img_uri }}"
+            })

@@ -1,0 +1,129 @@
+name: Production version
+
+on:
+  pull_request:
+    types: [closed]
+    branches: 
+      - master
+
+jobs:
+  define-next-version:
+    name: Define next version
+    if: contains(github.event.pull_request.labels.*.name, '#novo-release')
+    runs-on: ubuntu-18.04
+    outputs:
+      next_version: ${{ steps.next-version.outputs.next_version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+
+      - name: Getting the current version
+        run: if [ `git rev-list --tags --max-count=1` ]; then version=`git describe --tags \`git rev-list --tags --max-count=1\``; else version=v0.0.0; fi; echo "ACTUAL_VERSION=$version" >> $GITHUB_ENV;
+      
+      - name: Getting the next version type
+        run: if [ ${{ contains(github.event.pull_request.labels.*.name, '#major') }} = true ]; then type='major'; elif [ ${{ contains(github.event.pull_request.labels.*.name, '#minor') }} = true ]; then type='minor'; else type='patch'; fi; echo "NEXT_VERSION_LABEL=v_$type" >> $GITHUB_ENV;
+
+      - name: Getting the next version possibilities
+        id: semvers
+        uses: "WyriHaximus/github-action-next-semvers@v1"
+        with:
+          version: ${{ env.ACTUAL_VERSION }}
+
+      - name: Getting the next version based on label
+        id: next-version
+        run: echo "::set-output name=next_version::${{ steps.semvers.outputs[env.NEXT_VERSION_LABEL] }}"
+
+  create-release:
+    name: Create release
+    runs-on: ubuntu-18.04
+    needs: define-next-version
+
+    steps:
+      - name: Release body
+        run: if [ "${{ github.event_name }}" = "pull_request" ]; then body="${{ github.event.pull_request.body }}"; else body="Release gerada manualmente"; fi; echo "BODY=$body" >> $GITHUB_ENV
+
+      - name: Creating the new release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.define-next-version.outputs.next_version }}
+          release_name: Release ${{ needs.define-next-version.outputs.next_version }}
+          body: "${{ env.BODY }}"
+          draft: false
+          prerelease: false
+
+  sentry-publish-release:
+    name: Publish new release on Sentry
+    if: secrets.SENTRY_AUTH_TOKEN
+    needs: [define-next-version, create-release]
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Sending sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: "${{ needs.define-next-version.outputs.next_version }}"
+          version: "production"
+
+  build-upload:
+    name: Build and upload do ECR
+    needs: [define-next-version, create-release]
+    runs-on: ubuntu-18.04
+    outputs:
+      img_uri: "${{ github.event.repository.name }}:${{ needs.define-next-version.outputs.next_version }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configuring AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login on ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Getting the ECR URI
+        run: echo "ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ needs.define-next-version.outputs.next_version }}" >> $GITHUB_ENV
+
+      - name: Build, and push image to ECR
+        run: |
+          docker build --build-arg ENVIRONMENT_BUILD=production --build-arg RELEASE_V=${{ needs.define-next-version.outputs.next_version }} -f docker/Dockerfile -t ${{ env.ECR_URI }} .
+          docker push ${{ env.ECR_URI }}
+
+      - name: Logout of Amazon
+        if: always()
+        run: docker logout ${{ steps.login-ecr.outputs.registry }}
+
+  create-comment:
+    name: Create comment in Pull Request
+    if: github.event_name == 'pull_request'
+    needs: [build-upload]
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Commeting in PR
+        uses: actions/github-script@v3
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: "${{ github.event.number }}",
+              body: "**Imagem atualizada/criada com sucesso:** /${{ needs.build-upload.outputs.img_uri }}"
+            })
+  
+  

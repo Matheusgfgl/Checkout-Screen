@@ -1,15 +1,16 @@
 import Vue from 'vue';
-import App from './App.vue';
-import './registerServiceWorker';
+import '@/registerServiceWorker';
+import '@/config/globalComponents/index'; // GlobalComponents
 import router from './router';
 import store from './store';
+import App from './App.vue';
+
+// Global SVG Component
 
 Vue.config.productionTip = false;
 
-// Global SVG Component
-Vue.component('SvgElement', () => import('@/components/base/svg/SvgElement.vue'));
-
 new Vue({
+  name: 'AppVue',
   router,
   store,
   render: (h) => h(App),

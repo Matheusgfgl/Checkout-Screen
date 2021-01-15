@@ -5,32 +5,43 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:js": "vue-cli-service lint --cache --no-fix",
+    "lint:css": "stylelint 'src/**/*.{vue,htm,html,css,sss,less,scss,sass}' --cache",
+    "cz": "cz",
+    "postinstall": "husky install"
   },
   "dependencies": {
-    "core-js": "^3.6.5",
-    "git-revision-webpack-plugin": "^3.0.6",
-    "glob-all": "^3.2.1",
-    "purgecss-webpack-plugin": "^2.3.0",
-    "register-service-worker": "^1.7.1",
-    "vue": "^2.6.11",
-    "vue-router": "^3.4.3",
-    "vuex": "^3.5.1"
+    "core-js": "^3.8.1",
+    "register-service-worker": "^1.7.2",
+    "vue": "^2.6.12",
+    "vue-router": "^3.4.9",
+    "vuex": "^3.6.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-pwa": "~4.5.0",
-    "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/eslint-config-airbnb": "^5.0.2",
+    "@vue/cli-plugin-babel": "^4.5.9",
+    "@vue/cli-plugin-eslint": "^4.5.9",
+    "@vue/cli-plugin-pwa": "^4.5.9",
+    "@vue/cli-plugin-unit-mocha": "^4.5.9",
+    "@vue/cli-service": "^4.5.9",
+    "@vue/test-utils": "1.0.0-beta.29",
     "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "node-sass": "^4.12.0",
-    "sass-loader": "^8.0.2",
-    "vue-template-compiler": "^2.6.11"
+    "commitizen": "^4.2.2",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.16.0",
+    "eslint-plugin-vue": "^7.4.0",
+    "husky": "^5.0.6",
+    "sass": "^1.32.0",
+    "sass-loader": "^10.1.0",
+    "stylelint": "^13.8.0",
+    "stylelint-config-standard": "^20.0.0",
+    "stylelint-scss": "^3.18.0",
+    "stylelint-webpack-plugin": "^2.1.1",
+    "vue-template-compiler": "^2.6.12"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }

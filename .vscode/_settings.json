@@ -1,0 +1,12 @@
+{
+  "editor.tabSize": 2,
+  "vetur.validation.style": false,
+  "vetur.validation.template": false,
+  "vetur.validation.script": false,
+  "vetur.format.enable": false,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "vue"
+  ]
+}

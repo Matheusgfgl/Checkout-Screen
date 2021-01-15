@@ -2,11 +2,12 @@
   <div class="home">
     <!-- Using a SVG -->
     <SvgElement
-      class="logo"
-      icon="LogoVue"
-      name="Vue.js"/>
+      type="logo"
+      name="LogoVue"
+      title="Vue.js"
+    />
 
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <HelloWorld msg="Welcome to Your Vue.js App" />
   </div>
 </template>
 
@@ -23,6 +24,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .logo {
   margin: 0 auto;
 }
