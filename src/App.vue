@@ -1,13 +1,5 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">
-        Home
-      </router-link> |
-      <router-link to="/about">
-        About
-      </router-link>
-    </div>
     <router-view />
   </div>
 </template>
@@ -28,6 +20,8 @@
   */
 @import "@/assets/sass/base/_container.scss";
 @import "@/assets/sass/base/_fonts.scss";
+@import "@/assets/sass/base/_variables.scss";
+@import "@/assets/sass/base/_colors.scss";
 
 /**
   *
@@ -37,24 +31,13 @@
 @import "@/assets/sass/project/_buttons.scss";
 @import "@/assets/sass/project/_form.scss";
 
-#app {
-  font-family: $font-sans;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: $gray-500;
-}
+html {
+  width: 100%;
+  scroll-behavior: smooth;
 
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: $gray-500;
-
-    &.router-link-exact-active {
-      color: $green-500;
-    }
+  body {
+    font-family: 'Souce Sans Pro', sans-serif;
+    width: 100%;
   }
 }
 </style>
